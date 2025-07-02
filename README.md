@@ -2,6 +2,8 @@
 
 An automated tool for downloading and organizing exam papers from educational institutions (works for the University of Galway , may work for other universities with minor modifications (changing links, etc.)). This tool uses Puppeteer to navigate through exam paper repositories, download PDFs, and organize and combine them by subject.
 
+**Disclaimer:** Please ensure that the use of this script complies with the terms of use of the website you are scraping, as well as any agreements you have with your educational institution or other relevant organizations.
+
 ## Features
 
 - Automated exam paper downloading using Puppeteer with stealth mode
