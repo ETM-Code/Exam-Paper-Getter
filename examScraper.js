@@ -157,8 +157,13 @@ async function processSubject(browser, subject) {
     try {
         console.log('Navigating to search page...');
         await page.goto('https://regexam.nuigalway.ie/regexam/paper_index_search_main_menu.asp#');
-        const waitTime = isFirstRun ? 27000 : 5000;
+        // First run waits long enough for the user to complete the Microsoft
+        // SSO (+ MFA) login in the headed window; later subjects reuse the session.
+        const waitTime = isFirstRun ? 120000 : 5000;
         console.log(`Waiting for page load (${waitTime/1000} seconds)...`);
+        if (isFirstRun) {
+            console.log('>>> LOG IN NOW in the Chrome window (Microsoft SSO + MFA). You have ~2 minutes.');
+        }
         await new Promise(resolve => setTimeout(resolve, waitTime));
         isFirstRun = false;
 
@@ -241,15 +246,19 @@ async function processSubject(browser, subject) {
         console.log(`✅ Downloaded ${successfulDownloads} PDFs for ${subject.code}`);
 
         console.log('Starting PDF merge process...');
-        const outputPath = path.join(__dirname, `${subject.name}.pdf`);
+        // Merged "one big searchable PDF" goes alongside the per-subject folder.
+        const outputPath = path.join(__dirname, `${subject.name} - All Papers.pdf`);
         await mergePDFs(folderPath, outputPath);
-        
-        console.log('Cleaning up temporary directory...');
-        await fs.rmdir(folderPath, { recursive: true });
+
+        // Keep the per-subject folder with the individual paper PDFs intact
+        // (handy for downstream tooling / subagents). We no longer delete it.
+        console.log(`Retained individual PDFs in: ${folderPath}`);
         console.log(`✅ Completed processing ${subject.code}\n`);
 
+        return browser;
     } catch (error) {
         console.error(`❌ Error processing ${subject.code}:`, error);
+        return browser;
     } finally {
         await page.close();
     }
@@ -268,7 +277,7 @@ async function main() {
 
     try {
         for (const subject of subjects) {
-            await processSubject(browser, subject);
+            browser = await processSubject(browser, subject);
         }
     } finally {
         console.log('\nClosing browser...');
