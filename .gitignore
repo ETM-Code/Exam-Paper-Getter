@@ -27,6 +27,8 @@ package-lock.json
 
 # Misc
 subjects.txt
+regexam-cookies.json
+results.html
 
 # --- added by pre-wipe preflight; safe to delete later ---
 .venv/
